@@ -1,4 +1,13 @@
-# Reactive Contract Demos
+# Reactive Contract Demos# Taylor Bilyeu Reactive AI Automation Lab
+
+I am building cross-chain AI automation tools for Reactive Network.
+
+Focus areas:
+- Cross-chain automation
+- AI risk scoring
+- DeFi automation
+- Callback proxy workflows
+- Developer education
 
 ## Overview
 
