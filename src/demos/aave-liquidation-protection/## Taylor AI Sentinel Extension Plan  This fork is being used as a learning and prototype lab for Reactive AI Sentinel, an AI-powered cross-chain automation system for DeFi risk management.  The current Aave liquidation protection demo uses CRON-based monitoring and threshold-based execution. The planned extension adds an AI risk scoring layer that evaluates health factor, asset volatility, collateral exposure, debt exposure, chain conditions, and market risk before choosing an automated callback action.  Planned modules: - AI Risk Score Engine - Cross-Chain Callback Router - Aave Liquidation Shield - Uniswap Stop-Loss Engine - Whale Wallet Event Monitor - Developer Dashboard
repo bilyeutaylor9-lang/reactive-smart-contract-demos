@@ -1,0 +1,13 @@
+## Taylor AI Sentinel Extension Plan
+
+This fork is being used as a learning and prototype lab for Reactive AI Sentinel, an AI-powered cross-chain automation system for DeFi risk management.
+
+The current Aave liquidation protection demo uses CRON-based monitoring and threshold-based execution. The planned extension adds an AI risk scoring layer that evaluates health factor, asset volatility, collateral exposure, debt exposure, chain conditions, and market risk before choosing an automated callback action.
+
+Planned modules:
+- AI Risk Score Engine
+- Cross-Chain Callback Router
+- Aave Liquidation Shield
+- Uniswap Stop-Loss Engine
+- Whale Wallet Event Monitor
+- Developer Dashboard
