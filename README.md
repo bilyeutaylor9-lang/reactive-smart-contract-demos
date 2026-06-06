@@ -236,3 +236,33 @@ Version 4
 Vision
 
 AI Sentinel aims to become the autonomous risk and execution layer for Reactive Network, enabling intelligent cross-chain automation, institutional-grade risk management, and fully programmable decentralized decision making.
+# AI Sentinel Architecture
+
+## Overview
+
+AI Sentinel is an autonomous cross-chain risk intelligence framework built for Reactive Network. It is designed to monitor blockchain activity, score risk in real time, and trigger automated protective actions through Reactive Smart Contracts and callback execution.
+
+The system combines event-driven automation, institutional-grade risk modeling, and cross-chain execution into a modular DeFi intelligence layer.
+
+---
+
+## Core System Flow
+
+```text
+Origin Chain Event
+        ↓
+Reactive Event Subscription
+        ↓
+Reactive CRON / Event Trigger
+        ↓
+AI Sentinel Risk Engine
+        ↓
+Decision Layer
+        ↓
+Callback Proxy
+        ↓
+Destination Contract Execution
+        ↓
+Outcome Tracking
+        ↓
+Self-Learning Feedback Loop
