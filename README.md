@@ -1,4 +1,11 @@
-AI Sentinel – Autonomous Cross-Chain Risk Intelligence Framework
+# AI Sentinel
+
+Autonomous Cross-Chain Risk Intelligence Framework
+
+Status: Prototype
+Network: Reactive Network
+Use Case: Aave Liquidation Protection
+Version: v1.0 AI Sentinel – Autonomous Cross-Chain Risk Intelligence Framework
 
 Overview
 
