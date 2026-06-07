@@ -1,4 +1,15 @@
-# AI Sentinel
+# AI Sentinel for Reactive Network
+
+AI Sentinel demonstrates autonomous DeFi risk monitoring, cross-chain intelligence signaling, and automated protection workflows built on Reactive Network.
+
+Current Demos:
+- Hyperlane Intelligence Messaging
+- Cross-Chain Execution Engine
+- Aave Liquidation Protection
+- Automated Leverage Loop Management
+- AI Risk Signal Framework
+
+Status: Experimental Demo / Research Project# AI Sentinel
 
 Autonomous Cross-Chain Risk Intelligence Framework
 
