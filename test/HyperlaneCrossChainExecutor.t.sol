@@ -1,208 +1,202 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-interface IHyperlaneMailbox {
+import "forge-std/Test.sol";
+import "../src/demos/hyperlane/HyperlaneCrossChainExecutor.sol";
+import "../src/demos/ai-sentinel/OutcomeTracker.sol";
+
+contract MockHyperlaneMailbox {
+    bytes32 public lastMessageId;
+    uint32 public lastDestinationDomain;
+    bytes32 public lastRecipient;
+    bytes public lastMessageBody;
+
     function dispatch(uint32 destinationDomain, bytes32 recipientAddress, bytes calldata messageBody)
         external
         payable
-        returns (bytes32);
+        returns (bytes32)
+    {
+        lastDestinationDomain = destinationDomain;
+        lastRecipient = recipientAddress;
+        lastMessageBody = messageBody;
+        lastMessageId = keccak256(abi.encode(destinationDomain, recipientAddress, messageBody, block.timestamp));
+        return lastMessageId;
+    }
 }
 
-interface IOutcomeTracker {
-    enum ActionType {
-        NONE,
-        MONITOR,
-        PAUSE_AUTOMATION,
-        REDUCE_LEVERAGE,
-        REPAY_DEBT,
-        MOVE_COLLATERAL,
-        EMERGENCY_PROTECT
+contract HyperlaneCrossChainExecutorTest is Test {
+    HyperlaneCrossChainExecutor executor;
+    MockHyperlaneMailbox mailbox;
+    OutcomeTracker tracker;
+
+    address owner = address(this);
+    address attacker = address(999);
+    address target = address(123);
+
+    function setUp() public {
+        mailbox = new MockHyperlaneMailbox();
+        tracker = new OutcomeTracker();
+        executor = new HyperlaneCrossChainExecutor(address(mailbox));
+        tracker = new OutcomeTracker();
     }
 
-    function recordOutcome(
-        uint256 signalId,
-        uint256 riskScore,
-        ActionType actionTaken,
-        bool executed,
-        bool successful,
-        int256 valueProtected,
-        string calldata notes
-    ) external;
-}
-
-/// @title HyperlaneCrossChainExecutor
-/// @notice Sends AI Sentinel execution messages across chains and optionally records outcomes.
-contract HyperlaneCrossChainExecutor {
-    enum ActionType {
-        NONE,
-        MONITOR,
-        PAUSE_AUTOMATION,
-        REDUCE_LEVERAGE,
-        REPAY_DEBT,
-        MOVE_COLLATERAL,
-        EMERGENCY_PROTECT
+    function testOwnerSetCorrectly() public {
+        assertEq(executor.owner(), owner);
     }
 
-    struct CrossChainAction {
-        uint256 signalId;
-        ActionType actionType;
-        uint256 riskScore;
-        address target;
-        bytes payload;
-        uint256 timestamp;
-        bytes32 messageId;
-        bool outcomeRecorded;
+    function testMailboxSetCorrectly() public {
+        assertEq(address(executor.mailbox()), address(mailbox));
     }
 
-    event CrossChainExecutionRequested(
-        bytes32 indexed messageId,
-        uint32 indexed destinationDomain,
-        bytes32 indexed recipient,
-        uint256 signalId,
-        ActionType actionType,
-        uint256 riskScore,
-        address target,
-        bytes payload
-    );
+    function testRequestCrossChainExecution() public {
+        bytes32 recipient = bytes32(uint256(uint160(address(456))));
 
-    event OutcomeTrackerUpdated(address indexed oldTracker, address indexed newTracker);
+        bytes32 messageId = executor.requestCrossChainExecution(
+            8453,
+            recipient,
+            1,
+            HyperlaneCrossChainExecutor.ActionType.REDUCE_LEVERAGE,
+            88,
+            target,
+            abi.encode("reduce leverage")
+        );
 
-    event ExecutionOutcomeRecorded(
-        uint256 indexed executionId,
-        uint256 indexed signalId,
-        ActionType actionType,
-        uint256 riskScore,
-        bool executed,
-        bool successful,
-        int256 valueProtected,
-        string notes
-    );
-
-    event OwnerUpdated(address indexed oldOwner, address indexed newOwner);
-    event MailboxUpdated(address indexed oldMailbox, address indexed newMailbox);
-
-    address public owner;
-    IHyperlaneMailbox public mailbox;
-    IOutcomeTracker public outcomeTracker;
-
-    uint256 public totalExecutions;
-
-    mapping(uint256 => CrossChainAction) public executions;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not authorized");
-        _;
+        assertEq(executor.totalExecutions(), 1);
+        assertEq(mailbox.lastMessageId(), messageId);
+        assertEq(mailbox.lastDestinationDomain(), 8453);
+        assertEq(mailbox.lastRecipient(), recipient);
     }
 
-    constructor(address _mailbox) {
-        require(_mailbox != address(0), "Invalid mailbox");
-        owner = msg.sender;
-        mailbox = IHyperlaneMailbox(_mailbox);
+    function testSetOutcomeTracker() public {
+        executor.setOutcomeTracker(address(tracker));
+
+        assertEq(address(executor.outcomeTracker()), address(tracker));
     }
 
-    function requestCrossChainExecution(
-        uint32 destinationDomain,
-        bytes32 recipientAddress,
-        uint256 signalId,
-        ActionType actionType,
-        uint256 riskScore,
-        address target,
-        bytes calldata payload
-    ) external payable onlyOwner returns (bytes32 messageId) {
-        require(destinationDomain != 0, "Invalid destination");
-        require(recipientAddress != bytes32(0), "Invalid recipient");
-        require(target != address(0), "Invalid target");
-        require(riskScore <= 100, "Invalid risk score");
-        require(actionType != ActionType.NONE, "Invalid action");
+    function testRecordExecutionOutcome() public {
+        executor.setOutcomeTracker(address(tracker));
 
-        uint256 executionId = totalExecutions;
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            7,
+            HyperlaneCrossChainExecutor.ActionType.REPAY_DEBT,
+            91,
+            target,
+            abi.encode("repay debt")
+        );
 
-        bytes memory messageBody = abi.encode(signalId, actionType, riskScore, target, payload, block.timestamp, block.chainid);
+        executor.recordExecutionOutcome(0, true, true, 1_000e18, "Debt repaid before liquidation");
 
-        messageId = mailbox.dispatch{value: msg.value}(destinationDomain, recipientAddress, messageBody);
+        assertEq(tracker.totalOutcomes(), 1);
+        assertEq(tracker.successfulOutcomes(), 1);
+        assertEq(tracker.totalValueProtected(), 1_000e18);
 
-        executions[executionId] = CrossChainAction({
-            signalId: signalId,
-            actionType: actionType,
-            riskScore: riskScore,
-            target: target,
-            payload: payload,
-            timestamp: block.timestamp,
-            messageId: messageId,
-            outcomeRecorded: false
-        });
+        OutcomeTracker.Outcome memory outcome = tracker.getOutcome(7);
 
-        totalExecutions++;
+        assertEq(outcome.signalId, 7);
+        assertEq(outcome.riskScore, 91);
+        assertEq(uint256(outcome.actionTaken), uint256(OutcomeTracker.ActionType.REPAY_DEBT));
+        assertEq(outcome.executed, true);
+        assertEq(outcome.successful, true);
+        assertEq(outcome.valueProtected, 1_000e18);
+    }
 
-        emit CrossChainExecutionRequested(
-            messageId, destinationDomain, recipientAddress, signalId, actionType, riskScore, target, payload
+    function testCannotRecordOutcomeWithoutTracker() public {
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            7,
+            HyperlaneCrossChainExecutor.ActionType.REPAY_DEBT,
+            91,
+            target,
+            abi.encode("repay debt")
+        );
+
+        vm.expectRevert(bytes("Outcome tracker not set"));
+
+        executor.recordExecutionOutcome(0, true, true, 1_000e18, "missing tracker");
+    }
+
+    function testCannotRecordDuplicateOutcome() public {
+        executor.setOutcomeTracker(address(tracker));
+
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            7,
+            HyperlaneCrossChainExecutor.ActionType.REPAY_DEBT,
+            91,
+            target,
+            abi.encode("repay debt")
+        );
+
+        executor.recordExecutionOutcome(0, true, true, 1_000e18, "first");
+
+        vm.expectRevert(bytes("Outcome already recorded"));
+
+        executor.recordExecutionOutcome(0, true, true, 1_000e18, "duplicate");
+    }
+
+    function testOnlyOwnerCanRecordOutcome() public {
+        executor.setOutcomeTracker(address(tracker));
+
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            7,
+            HyperlaneCrossChainExecutor.ActionType.REPAY_DEBT,
+            91,
+            target,
+            abi.encode("repay debt")
+        );
+
+        vm.prank(attacker);
+        vm.expectRevert(bytes("Not authorized"));
+
+        executor.recordExecutionOutcome(0, true, true, 1_000e18, "attacker");
+    }
+
+    function testOnlyOwnerCanRequestExecution() public {
+        vm.prank(attacker);
+        vm.expectRevert(bytes("Not authorized"));
+
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            1,
+            HyperlaneCrossChainExecutor.ActionType.REPAY_DEBT,
+            90,
+            target,
+            abi.encode("repay debt")
         );
     }
 
-    function setOutcomeTracker(address tracker) external onlyOwner {
-        address oldTracker = address(outcomeTracker);
-        outcomeTracker = IOutcomeTracker(tracker);
+    function testCannotUseInvalidRiskScore() public {
+        vm.expectRevert(bytes("Invalid risk score"));
 
-        emit OutcomeTrackerUpdated(oldTracker, tracker);
-    }
-
-    function recordExecutionOutcome(
-        uint256 executionId,
-        bool executed,
-        bool successful,
-        int256 valueProtected,
-        string calldata notes
-    ) external onlyOwner {
-        require(executionId < totalExecutions, "Execution does not exist");
-        require(!executions[executionId].outcomeRecorded, "Outcome already recorded");
-        require(address(outcomeTracker) != address(0), "Outcome tracker not set");
-
-        CrossChainAction storage action = executions[executionId];
-        action.outcomeRecorded = true;
-
-        outcomeTracker.recordOutcome(
-            action.signalId,
-            action.riskScore,
-            _convertAction(action.actionType),
-            executed,
-            successful,
-            valueProtected,
-            notes
-        );
-
-        emit ExecutionOutcomeRecorded(
-            executionId, action.signalId, action.actionType, action.riskScore, executed, successful, valueProtected, notes
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            1,
+            HyperlaneCrossChainExecutor.ActionType.EMERGENCY_PROTECT,
+            101,
+            target,
+            abi.encode("bad risk")
         );
     }
 
-    function updateMailbox(address newMailbox) external onlyOwner {
-        require(newMailbox != address(0), "Invalid mailbox");
+    function testCannotUseNoneAction() public {
+        vm.expectRevert(bytes("Invalid action"));
 
-        address oldMailbox = address(mailbox);
-        mailbox = IHyperlaneMailbox(newMailbox);
-
-        emit MailboxUpdated(oldMailbox, newMailbox);
+        executor.requestCrossChainExecution(
+            8453,
+            bytes32(uint256(uint160(address(456)))),
+            1,
+            HyperlaneCrossChainExecutor.ActionType.NONE,
+            50,
+            target,
+            abi.encode("none")
+        );
     }
-
-    function updateOwner(address newOwner) external onlyOwner {
-        require(newOwner != address(0), "Invalid owner");
-
-        address oldOwner = owner;
-        owner = newOwner;
-
-        emit OwnerUpdated(oldOwner, newOwner);
-    }
-
-    function _convertAction(ActionType actionType) internal pure returns (IOutcomeTracker.ActionType) {
-        if (actionType == ActionType.MONITOR) return IOutcomeTracker.ActionType.MONITOR;
-        if (actionType == ActionType.PAUSE_AUTOMATION) return IOutcomeTracker.ActionType.PAUSE_AUTOMATION;
-        if (actionType == ActionType.REDUCE_LEVERAGE) return IOutcomeTracker.ActionType.REDUCE_LEVERAGE;
-        if (actionType == ActionType.REPAY_DEBT) return IOutcomeTracker.ActionType.REPAY_DEBT;
-        if (actionType == ActionType.MOVE_COLLATERAL) return IOutcomeTracker.ActionType.MOVE_COLLATERAL;
-        if (actionType == ActionType.EMERGENCY_PROTECT) return IOutcomeTracker.ActionType.EMERGENCY_PROTECT;
-
-        return IOutcomeTracker.ActionType.NONE;
-    }
-
-    receive() external payable {}
 }
