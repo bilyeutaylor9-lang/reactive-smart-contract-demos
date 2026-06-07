@@ -12,6 +12,7 @@ contract OracleGuardianTest is Test {
     address attacker = address(999);
 
     function setUp() public {
+        vm.warp(10 days);
         guardian = new OracleGuardian();
     }
 
