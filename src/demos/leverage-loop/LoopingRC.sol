@@ -22,11 +22,8 @@ contract LoopingRC is AbstractPausableReactive {
     uint256 private constant INITIAL_LEVERAGE_FACTOR = 4000;
     uint256 private constant SUBSEQUENT_LEVERAGE_FACTOR = 5500;
 
-    uint256 private constant TOPIC_DEPOSITED =
-        0xf6f7eb594d038f473e5f6b9543f860b51b8c17d68104222832ff1d98f7efb30c;
-
-    uint256 private constant TOPIC_LOOP_STEP =
-        0x7e802efb14392b5b75aedfd4ccfb6ac74a5f5a30ebce7a23a4cf8ec0713aa963;
+    uint256 private constant TOPIC_DEPOSITED = 0xf6f7eb594d038f473e5f6b9543f860b51b8c17d68104222832ff1d98f7efb30c;
+    uint256 private constant TOPIC_LOOP_STEP = 0x7e802efb14392b5b75aedfd4ccfb6ac74a5f5a30ebce7a23a4cf8ec0713aa963;
 
     address public leverageAccount;
     address public weth;
@@ -54,10 +51,20 @@ contract LoopingRC is AbstractPausableReactive {
 
         if (!vm) {
             service.subscribe(
-                SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_DEPOSITED, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+                SEPOLIA_CHAIN_ID,
+                leverageAccount,
+                TOPIC_DEPOSITED,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
             );
             service.subscribe(
-                SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_LOOP_STEP, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+                SEPOLIA_CHAIN_ID,
+                leverageAccount,
+                TOPIC_LOOP_STEP,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
             );
         }
     }
@@ -155,10 +162,20 @@ contract LoopingRC is AbstractPausableReactive {
     function getPausableSubscriptions() internal view override returns (Subscription[] memory) {
         Subscription[] memory subs = new Subscription[](2);
         subs[0] = Subscription(
-            SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_DEPOSITED, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+            SEPOLIA_CHAIN_ID,
+            leverageAccount,
+            TOPIC_DEPOSITED,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE
         );
         subs[1] = Subscription(
-            SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_LOOP_STEP, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+            SEPOLIA_CHAIN_ID,
+            leverageAccount,
+            TOPIC_LOOP_STEP,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE
         );
         return subs;
     }
