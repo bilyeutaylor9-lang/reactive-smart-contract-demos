@@ -35,9 +35,9 @@ contract HyperlaneCrossChainExecutorTest is Test {
 
     function setUp() public {
         mailbox = new MockHyperlaneMailbox();
-        tracker = new OutcomeTracker();
         executor = new HyperlaneCrossChainExecutor(address(mailbox));
         tracker = new OutcomeTracker();
+        tracker.updateOwner(address(executor));
     }
 
     function testOwnerSetCorrectly() public {
