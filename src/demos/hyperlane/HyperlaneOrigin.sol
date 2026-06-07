@@ -77,13 +77,15 @@ contract HyperlaneOrigin {
         emit Trigger(message);
     }
 
+    // FIXED: external -> public
+    // FIXED: calldata -> memory
     function triggerIntelligenceSignal(
         SignalType signalType,
         Urgency urgency,
         uint256 riskScore,
         uint256 opportunityScore,
-        bytes calldata payload
-    ) external onlyOwner returns (uint256) {
+        bytes memory payload
+    ) public onlyOwner returns (uint256) {
         require(riskScore <= 100, "Invalid risk score");
         require(opportunityScore <= 100, "Invalid opportunity score");
 
@@ -204,15 +206,23 @@ contract HyperlaneOrigin {
         bytes32 sender,
         bytes calldata message
     ) external payable onlyMailbox {
-        emit Received(chain_id, address(uint160(uint256(sender))), message);
+        emit Received(
+            chain_id,
+            address(uint160(uint256(sender))),
+            message
+        );
     }
 
-    function getSignal(uint256 signalId) external view returns (IntelligenceSignal memory) {
+    function getSignal(
+        uint256 signalId
+    ) external view returns (IntelligenceSignal memory) {
         require(signalId < totalSignals, "Signal does not exist");
         return signals[signalId];
     }
 
-    function _classifyUrgency(uint256 riskScore) internal pure returns (Urgency) {
+    function _classifyUrgency(
+        uint256 riskScore
+    ) internal pure returns (Urgency) {
         if (riskScore >= 90) return Urgency.CRITICAL;
         if (riskScore >= 75) return Urgency.HIGH;
         if (riskScore >= 50) return Urgency.MEDIUM;
