@@ -23,19 +23,27 @@ contract HyperlaneOriginTest is Test {
         assertEq(hyperlane.mailbox(), mailbox);
     }
 
+    function testDeploy() public {
+        assertEq(hyperlane.totalSignals(), 0);
+    }
+
     function testCreateGenericSignal() public {
-        uint256 signalId =
-            hyperlane.triggerIntelligenceSignal(
-                HyperlaneOrigin.SignalType.GENERIC,
-                HyperlaneOrigin.Urgency.MEDIUM,
-                50,
-                25,
-                abi.encode("generic")
-            );
+        uint256 signalId = hyperlane.triggerIntelligenceSignal(
+            HyperlaneOrigin.SignalType.GENERIC, HyperlaneOrigin.Urgency.MEDIUM, 50, 25, abi.encode("generic")
+        );
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
         assertEq(hyperlane.criticalSignals(), 0);
+    }
+
+    function testCreateSignal() public {
+        uint256 signalId = hyperlane.triggerIntelligenceSignal(
+            HyperlaneOrigin.SignalType.AAVE_RISK, HyperlaneOrigin.Urgency.HIGH, 75, 0, abi.encode("test")
+        );
+
+        assertEq(signalId, 0);
+        assertEq(hyperlane.totalSignals(), 1);
     }
 
     function testCreateAaveRiskSignal() public {
@@ -45,27 +53,9 @@ contract HyperlaneOriginTest is Test {
         assertEq(hyperlane.totalSignals(), 1);
     }
 
-    function testDeploy() public {
-        assertEq(hyperlane.totalSignals(), 0);
-    }
-
     function testCreateWhaleSignal() public {
         uint256 signalId =
             hyperlane.triggerWhaleSignal(address(555), 1_000_000 ether, 80, abi.encode("whale-test"));
-
-        assertEq(signalId, 0);
-        assertEq(hyperlane.totalSignals(), 1);
-    }
-
-    function testCreateSignal() public {
-        uint256 signalId =
-            hyperlane.triggerIntelligenceSignal(
-                HyperlaneOrigin.SignalType.AAVE_RISK,
-                HyperlaneOrigin.Urgency.HIGH,
-                75,
-                0,
-                abi.encode("test")
-            );
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
@@ -93,11 +83,7 @@ contract HyperlaneOriginTest is Test {
 
     function testCriticalSignalCounterByRiskScore() public {
         hyperlane.triggerIntelligenceSignal(
-            HyperlaneOrigin.SignalType.ORACLE_RISK,
-            HyperlaneOrigin.Urgency.HIGH,
-            95,
-            0,
-            abi.encode("critical-risk")
+            HyperlaneOrigin.SignalType.ORACLE_RISK, HyperlaneOrigin.Urgency.HIGH, 95, 0, abi.encode("critical-risk")
         );
 
         assertEq(hyperlane.criticalSignals(), 1);
@@ -107,11 +93,7 @@ contract HyperlaneOriginTest is Test {
         vm.expectRevert(bytes("Invalid risk score"));
 
         hyperlane.triggerIntelligenceSignal(
-            HyperlaneOrigin.SignalType.AAVE_RISK,
-            HyperlaneOrigin.Urgency.HIGH,
-            101,
-            0,
-            abi.encode("bad-risk")
+            HyperlaneOrigin.SignalType.AAVE_RISK, HyperlaneOrigin.Urgency.HIGH, 101, 0, abi.encode("bad-risk")
         );
     }
 
@@ -119,11 +101,7 @@ contract HyperlaneOriginTest is Test {
         vm.expectRevert(bytes("Invalid opportunity score"));
 
         hyperlane.triggerIntelligenceSignal(
-            HyperlaneOrigin.SignalType.GENERIC,
-            HyperlaneOrigin.Urgency.LOW,
-            50,
-            101,
-            abi.encode("bad-opportunity")
+            HyperlaneOrigin.SignalType.GENERIC, HyperlaneOrigin.Urgency.LOW, 50, 101, abi.encode("bad-opportunity")
         );
     }
 
@@ -132,11 +110,7 @@ contract HyperlaneOriginTest is Test {
         vm.expectRevert(bytes("Not authorized"));
 
         hyperlane.triggerIntelligenceSignal(
-            HyperlaneOrigin.SignalType.WHALE_ACTIVITY,
-            HyperlaneOrigin.Urgency.HIGH,
-            80,
-            0,
-            abi.encode("attacker")
+            HyperlaneOrigin.SignalType.WHALE_ACTIVITY, HyperlaneOrigin.Urgency.HIGH, 80, 0, abi.encode("attacker")
         );
     }
 
@@ -176,11 +150,7 @@ contract HyperlaneOriginTest is Test {
 
     function testGetSignal() public {
         uint256 signalId = hyperlane.triggerIntelligenceSignal(
-            HyperlaneOrigin.SignalType.AAVE_RISK,
-            HyperlaneOrigin.Urgency.HIGH,
-            75,
-            10,
-            abi.encode("stored-signal")
+            HyperlaneOrigin.SignalType.AAVE_RISK, HyperlaneOrigin.Urgency.HIGH, 75, 10, abi.encode("stored-signal")
         );
 
         HyperlaneOrigin.IntelligenceSignal memory signal = hyperlane.getSignal(signalId);
