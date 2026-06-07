@@ -50,22 +50,8 @@ contract LoopingRC is AbstractPausableReactive {
         borrowAssetDecimals = _borrowAssetDecimals;
 
         if (!vm) {
-            service.subscribe(
-                SEPOLIA_CHAIN_ID,
-                leverageAccount,
-                TOPIC_DEPOSITED,
-                REACTIVE_IGNORE,
-                REACTIVE_IGNORE,
-                REACTIVE_IGNORE
-            );
-            service.subscribe(
-                SEPOLIA_CHAIN_ID,
-                leverageAccount,
-                TOPIC_LOOP_STEP,
-                REACTIVE_IGNORE,
-                REACTIVE_IGNORE,
-                REACTIVE_IGNORE
-            );
+            service.subscribe(SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_DEPOSITED, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE);
+            service.subscribe(SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_LOOP_STEP, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE);
         }
     }
 
@@ -161,22 +147,8 @@ contract LoopingRC is AbstractPausableReactive {
 
     function getPausableSubscriptions() internal view override returns (Subscription[] memory) {
         Subscription[] memory subs = new Subscription[](2);
-        subs[0] = Subscription(
-            SEPOLIA_CHAIN_ID,
-            leverageAccount,
-            TOPIC_DEPOSITED,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        subs[1] = Subscription(
-            SEPOLIA_CHAIN_ID,
-            leverageAccount,
-            TOPIC_LOOP_STEP,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
+        subs[0] = Subscription(SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_DEPOSITED, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE);
+        subs[1] = Subscription(SEPOLIA_CHAIN_ID, leverageAccount, TOPIC_LOOP_STEP, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE);
         return subs;
     }
 
