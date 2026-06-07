@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Sentinel Dashboard</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>AI Sentinel</h1>
+      <p>Autonomous Cross-Chain Risk Intelligence</p>
+
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#signals">Signals</a>
+        <a href="#executions">Executions</a>
+        <a href="#outcomes">Outcomes</a>
+        <a href="#learning">Learning</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section id="overview" class="hero">
+        <h2>AI Sentinel Command Center</h2>
+        <p>Detect → Score → Decide → Execute → Learn</p>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <span>Total Signals</span>
+          <strong id="totalSignals">0</strong>
+        </div>
+        <div class="card">
+          <span>Critical Alerts</span>
+          <strong id="criticalAlerts">0</strong>
+        </div>
+        <div class="card">
+          <span>Executions</span>
+          <strong id="executions">0</strong>
+        </div>
+        <div class="card">
+          <span>Success Rate</span>
+          <strong id="successRate">0%</strong>
+        </div>
+        <div class="card wide">
+          <span>Value Protected</span>
+          <strong id="valueProtected">$0</strong>
+        </div>
+      </section>
+
+      <section id="signals" class="panel">
+        <h3>Live Risk Signals</h3>
+        <div id="signalsTable"></div>
+      </section>
+
+      <section id="executions" class="panel">
+        <h3>Cross-Chain Executions</h3>
+        <div id="executionsTable"></div>
+      </section>
+
+      <section id="outcomes" class="panel">
+        <h3>Outcome Tracker</h3>
+        <div id="outcomesTable"></div>
+      </section>
+
+      <section id="learning" class="panel">
+        <h3>AI Strategy Optimizer</h3>
+        <div class="learning-grid" id="learningGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
