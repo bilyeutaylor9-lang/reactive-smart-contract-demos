@@ -24,13 +24,14 @@ contract HyperlaneOriginTest is Test {
     }
 
     function testCreateGenericSignal() public {
-        uint256 signalId = hyperlane.triggerIntelligenceSignal(
-            HyperlaneOrigin.SignalType.GENERIC,
-            HyperlaneOrigin.Urgency.MEDIUM,
-            50,
-            25,
-            abi.encode("generic")
-        );
+        uint256 signalId =
+            hyperlane.triggerIntelligenceSignal(
+                HyperlaneOrigin.SignalType.GENERIC,
+                HyperlaneOrigin.Urgency.MEDIUM,
+                50,
+                25,
+                abi.encode("generic")
+            );
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
@@ -38,34 +39,40 @@ contract HyperlaneOriginTest is Test {
     }
 
     function testCreateAaveRiskSignal() public {
-        uint256 signalId = hyperlane.triggerAaveRiskSignal(
-            8000,
-            75,
-            abi.encode("aave-test")
-        );
+        uint256 signalId = hyperlane.triggerAaveRiskSignal(8000, 75, abi.encode("aave-test"));
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
     }
 
+    function testDeploy() public {
+        assertEq(hyperlane.totalSignals(), 0);
+    }
+
     function testCreateWhaleSignal() public {
-        uint256 signalId = hyperlane.triggerWhaleSignal(
-            address(555),
-            1_000_000 ether,
-            80,
-            abi.encode("whale-test")
-        );
+        uint256 signalId =
+            hyperlane.triggerWhaleSignal(address(555), 1_000_000 ether, 80, abi.encode("whale-test"));
+
+        assertEq(signalId, 0);
+        assertEq(hyperlane.totalSignals(), 1);
+    }
+
+    function testCreateSignal() public {
+        uint256 signalId =
+            hyperlane.triggerIntelligenceSignal(
+                HyperlaneOrigin.SignalType.AAVE_RISK,
+                HyperlaneOrigin.Urgency.HIGH,
+                75,
+                0,
+                abi.encode("test")
+            );
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
     }
 
     function testCreateOracleRiskSignal() public {
-        uint256 signalId = hyperlane.triggerOracleRiskSignal(
-            address(777),
-            90,
-            abi.encode("oracle-test")
-        );
+        uint256 signalId = hyperlane.triggerOracleRiskSignal(address(777), 90, abi.encode("oracle-test"));
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
@@ -122,7 +129,6 @@ contract HyperlaneOriginTest is Test {
 
     function testOnlyOwnerCanTriggerSignal() public {
         vm.prank(attacker);
-
         vm.expectRevert(bytes("Not authorized"));
 
         hyperlane.triggerIntelligenceSignal(
@@ -136,61 +142,36 @@ contract HyperlaneOriginTest is Test {
 
     function testOnlyOwnerCanTriggerAaveRiskSignal() public {
         vm.prank(attacker);
-
         vm.expectRevert(bytes("Not authorized"));
 
-        hyperlane.triggerAaveRiskSignal(
-            8000,
-            75,
-            abi.encode("attacker-aave")
-        );
+        hyperlane.triggerAaveRiskSignal(8000, 75, abi.encode("attacker-aave"));
     }
 
     function testOnlyOwnerCanTriggerWhaleSignal() public {
         vm.prank(attacker);
-
         vm.expectRevert(bytes("Not authorized"));
 
-        hyperlane.triggerWhaleSignal(
-            address(555),
-            1_000_000 ether,
-            80,
-            abi.encode("attacker-whale")
-        );
+        hyperlane.triggerWhaleSignal(address(555), 1_000_000 ether, 80, abi.encode("attacker-whale"));
     }
 
     function testOnlyOwnerCanTriggerOracleRiskSignal() public {
         vm.prank(attacker);
-
         vm.expectRevert(bytes("Not authorized"));
 
-        hyperlane.triggerOracleRiskSignal(
-            address(777),
-            90,
-            abi.encode("attacker-oracle")
-        );
+        hyperlane.triggerOracleRiskSignal(address(777), 90, abi.encode("attacker-oracle"));
     }
 
     function testOnlyMailboxCanHandleMessage() public {
         vm.prank(attacker);
-
         vm.expectRevert(bytes("Not authorized"));
 
-        hyperlane.handle(
-            8453,
-            bytes32(uint256(uint160(address(123)))),
-            abi.encode("bad-message")
-        );
+        hyperlane.handle(8453, bytes32(uint256(uint160(address(123)))), abi.encode("bad-message"));
     }
 
     function testMailboxCanHandleMessage() public {
         vm.prank(mailbox);
 
-        hyperlane.handle(
-            8453,
-            bytes32(uint256(uint160(address(123)))),
-            abi.encode("valid-message")
-        );
+        hyperlane.handle(8453, bytes32(uint256(uint160(address(123)))), abi.encode("valid-message"));
     }
 
     function testGetSignal() public {
@@ -202,8 +183,7 @@ contract HyperlaneOriginTest is Test {
             abi.encode("stored-signal")
         );
 
-        HyperlaneOrigin.IntelligenceSignal memory signal =
-            hyperlane.getSignal(signalId);
+        HyperlaneOrigin.IntelligenceSignal memory signal = hyperlane.getSignal(signalId);
 
         assertEq(uint256(signal.signalType), uint256(HyperlaneOrigin.SignalType.AAVE_RISK));
         assertEq(uint256(signal.urgency), uint256(HyperlaneOrigin.Urgency.HIGH));
