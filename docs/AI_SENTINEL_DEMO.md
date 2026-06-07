@@ -1,18 +1,40 @@
-Scenario 1:
-Aave Health Factor drops to 1.15
+# AI Sentinel
 
-AaveGuardian:
-Risk = 95
+Cross-chain autonomous risk management powered by:
 
-AISentinel:
-Action = REPAY_DEBT
+- Reactive Network
+- Hyperlane
+- AI Decision Engine
+- Outcome Learning
 
-Hyperlane:
-Dispatch to Base
+## Architecture
 
-Executor:
-Repays debt
+WhaleDetector
+OracleGuardian
+AaveGuardian
+↓
+AIAgentCoordinator
+↓
+AISentinelRiskEngine
+↓
+HyperlaneOrigin
+↓
+AIExecutionRouter
+↓
+HyperlaneCrossChainExecutor
+↓
+OutcomeTracker
+↓
+AIStrategyOptimizer
 
-OutcomeTracker:
-Success
-Value Protected = $125,000
+## Demo Scenario
+
+1. Oracle deviation detected
+2. OracleGuardian creates alert
+3. AISentinelRiskEngine scores risk = 95
+4. AIAgentCoordinator recommends EMERGENCY_PROTECT
+5. HyperlaneOrigin creates signal
+6. AIExecutionRouter routes execution
+7. HyperlaneCrossChainExecutor executes protection
+8. OutcomeTracker records result
+9. AIStrategyOptimizer updates confidence
