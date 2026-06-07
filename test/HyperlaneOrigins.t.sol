@@ -54,8 +54,7 @@ contract HyperlaneOriginTest is Test {
     }
 
     function testCreateWhaleSignal() public {
-        uint256 signalId =
-            hyperlane.triggerWhaleSignal(address(555), 1_000_000 ether, 80, abi.encode("whale-test"));
+        uint256 signalId = hyperlane.triggerWhaleSignal(address(555), 1_000_000 ether, 80, abi.encode("whale-test"));
 
         assertEq(signalId, 0);
         assertEq(hyperlane.totalSignals(), 1);
