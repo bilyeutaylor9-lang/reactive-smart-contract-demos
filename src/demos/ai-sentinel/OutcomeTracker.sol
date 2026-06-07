@@ -96,4 +96,9 @@ contract OutcomeTracker {
         require(hasOutcome[signalId], "Outcome does not exist");
         return outcomes[signalId];
     }
+
+    function updateOwner(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "Invalid owner");
+        owner = newOwner;
+    }
 }
