@@ -1,77 +1,261 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Sentinel Dashboard</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <div class="app">
-    <aside class="sidebar">
-      <h1>AI Sentinel</h1>
-      <p>Autonomous Cross-Chain Risk Intelligence</p>
+const demoState = {
+  totalSignals: 128,
+  criticalAlerts: 7,
+  executions: 18,
+  successRate: 94,
+  valueProtected: 1284500
+};
 
-      <nav>
-        <a href="#overview">Overview</a>
-        <a href="#signals">Signals</a>
-        <a href="#executions">Executions</a>
-        <a href="#outcomes">Outcomes</a>
-        <a href="#learning">Learning</a>
-      </nav>
-    </aside>
+const scenarios = [
+  {
+    healthFactor: "1.42",
+    riskScore: "38",
+    decision: "ALERT_ONLY",
+    status: "WATCHLIST"
+  },
+  {
+    healthFactor: "1.21",
+    riskScore: "64",
+    decision: "REPAY_DEBT",
+    status: "HIGH RISK"
+  },
+  {
+    healthFactor: "1.14",
+    riskScore: "82",
+    decision: "ADD_COLLATERAL",
+    status: "PROTECTED"
+  }
+];
 
-    <main class="main">
-      <section id="overview" class="hero">
-        <h2>AI Sentinel Command Center</h2>
-        <p>Detect → Score → Decide → Execute → Learn</p>
-      </section>
+const signals = [
+  {
+    protocol: "Aave",
+    chain: "Ethereum",
+    signal: "Health Factor Drop",
+    risk: "CRITICAL",
+    score: 82,
+    action: "ADD_COLLATERAL"
+  },
+  {
+    protocol: "Uniswap V2",
+    chain: "Base",
+    signal: "Large Swap Detected",
+    risk: "ELEVATED",
+    score: 61,
+    action: "ALERT_ONLY"
+  },
+  {
+    protocol: "Bridge Monitor",
+    chain: "Polygon",
+    signal: "Cross-Chain Flow Spike",
+    risk: "WATCHLIST",
+    score: 42,
+    action: "MONITOR"
+  }
+];
 
-      <section class="grid">
-        <div class="card">
-          <span>Total Signals</span>
-          <strong id="totalSignals">0</strong>
-        </div>
-        <div class="card">
-          <span>Critical Alerts</span>
-          <strong id="criticalAlerts">0</strong>
-        </div>
-        <div class="card">
-          <span>Executions</span>
-          <strong id="executions">0</strong>
-        </div>
-        <div class="card">
-          <span>Success Rate</span>
-          <strong id="successRate">0%</strong>
-        </div>
-        <div class="card wide">
-          <span>Value Protected</span>
-          <strong id="valueProtected">$0</strong>
-        </div>
-      </section>
+const executions = [
+  {
+    action: "ADD_COLLATERAL",
+    source: "Ethereum",
+    destination: "Reactive Network",
+    status: "Prepared",
+    txType: "Callback"
+  },
+  {
+    action: "REPAY_DEBT",
+    source: "Aave",
+    destination: "Execution Contract",
+    status: "Simulated",
+    txType: "Protection"
+  },
+  {
+    action: "ALERT_ONLY",
+    source: "Uniswap",
+    destination: "Dashboard",
+    status: "Complete",
+    txType: "Signal"
+  }
+];
 
-      <section id="signals" class="panel">
-        <h3>Live Risk Signals</h3>
-        <div id="signalsTable"></div>
-      </section>
+const outcomes = [
+  {
+    event: "Liquidation Risk Reduced",
+    before: "1.14 HF",
+    after: "1.39 HF",
+    result: "Improved"
+  },
+  {
+    event: "Risk Score Lowered",
+    before: "82",
+    after: "47",
+    result: "Improved"
+  },
+  {
+    event: "Execution Decision",
+    before: "Critical",
+    after: "Protected",
+    result: "Success"
+  }
+];
 
-      <section id="executions" class="panel">
-        <h3>Cross-Chain Executions</h3>
-        <div id="executionsTable"></div>
-      </section>
+const learning = [
+  {
+    label: "Decision Confidence",
+    value: "91%"
+  },
+  {
+    label: "False Positive Rate",
+    value: "6%"
+  },
+  {
+    label: "Liquidation Avoidance",
+    value: "94%"
+  },
+  {
+    label: "Model Status",
+    value: "Training"
+  }
+];
 
-      <section id="outcomes" class="panel">
-        <h3>Outcome Tracker</h3>
-        <div id="outcomesTable"></div>
-      </section>
+function formatUsd(value) {
+  return `$${Number(value).toLocaleString()}`;
+}
 
-      <section id="learning" class="panel">
-        <h3>AI Strategy Optimizer</h3>
-        <div class="learning-grid" id="learningGrid"></div>
-      </section>
-    </main>
-  </div>
+function badge(value) {
+  const normalized = String(value).toUpperCase();
 
-  <script type="module" src="./app.js"></script>
-</body>
-</html>
+  let className = "badge";
+
+  if (["SAFE", "COMPLETE", "SUCCESS", "IMPROVED", "PROTECTED", "PREPARED"].includes(normalized)) {
+    className += " safe";
+  } else if (["WATCHLIST", "ELEVATED", "MONITOR", "SIMULATED"].includes(normalized)) {
+    className += " warning";
+  } else if (["HIGH RISK", "CRITICAL", "EMERGENCY"].includes(normalized)) {
+    className += " danger";
+  }
+
+  return `<span class="${className}">${value}</span>`;
+}
+
+function renderMetrics() {
+  document.getElementById("totalSignals").textContent = demoState.totalSignals;
+  document.getElementById("criticalAlerts").textContent = demoState.criticalAlerts;
+  document.getElementById("executions").textContent = demoState.executions;
+  document.getElementById("successRate").textContent = `${demoState.successRate}%`;
+  document.getElementById("valueProtected").textContent = formatUsd(demoState.valueProtected);
+}
+
+function renderSignals() {
+  const rows = signals
+    .map(
+      item => `<tr>
+        <td>${item.protocol}</td>
+        <td>${item.chain}</td>
+        <td>${item.signal}</td>
+        <td>${badge(item.risk)}</td>
+        <td>${item.score}</td>
+        <td>${item.action}</td>
+      </tr>`
+    )
+    .join("");
+
+  document.getElementById("signalsTable").innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Protocol</th>
+        <th>Chain</th>
+        <th>Signal</th>
+        <th>Risk</th>
+        <th>Score</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderExecutions() {
+  const rows = executions
+    .map(
+      item => `<tr>
+        <td>${item.action}</td>
+        <td>${item.source}</td>
+        <td>${item.destination}</td>
+        <td>${badge(item.status)}</td>
+        <td>${item.txType}</td>
+      </tr>`
+    )
+    .join("");
+
+  document.getElementById("executionsTable").innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Action</th>
+        <th>Source</th>
+        <th>Destination</th>
+        <th>Status</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderOutcomes() {
+  const rows = outcomes
+    .map(
+      item => `<tr>
+        <td>${item.event}</td>
+        <td>${item.before}</td>
+        <td>${item.after}</td>
+        <td>${badge(item.result)}</td>
+      </tr>`
+    )
+    .join("");
+
+  document.getElementById("outcomesTable").innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Outcome</th>
+        <th>Before</th>
+        <th>After</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderLearning() {
+  const cards = learning
+    .map(
+      item => `<div class="learning-item">
+        <span>${item.label}</span>
+        <strong>${item.value}</strong>
+      </div>`
+    )
+    .join("");
+
+  document.getElementById("learningGrid").innerHTML = cards;
+}
+
+let scenarioIndex = 0;
+
+function rotateScenario() {
+  scenarioIndex = (scenarioIndex + 1) % scenarios.length;
+  const scenario = scenarios[scenarioIndex];
+
+  document.getElementById("healthFactor").textContent = scenario.healthFactor;
+  document.getElementById("riskScore").textContent = scenario.riskScore;
+  document.getElementById("decision").textContent = scenario.decision;
+  document.getElementById("status").textContent = scenario.status;
+}
+
+renderMetrics();
+renderSignals();
+renderExecutions();
+renderOutcomes();
+renderLearning();
+
+setInterval(rotateScenario, 3000);
